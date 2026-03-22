@@ -24,18 +24,18 @@ Original images and graphs are preserved in the output PDF.
 
 ---
 
-## Setup
+## Installation
 
 ```bash
 # 1. Create and activate a virtual environment
 python3 -m venv .venv
 source .venv/bin/activate
 
-# 2. Install the package (pulls in all dependencies)
+# 2. Install the package and all dependencies
 pip install -e .
 
-# 3. Install Playwright's Chromium browser (one-time)
-playwright install chromium
+# 3. Install Playwright's Chrome browser (one-time)
+playwright install chrome
 ```
 
 ---
@@ -43,22 +43,17 @@ playwright install chromium
 ## Usage
 
 ```bash
-# After pip install -e ., a console script is registered:
 pdf-translator
-
-# Or run directly from the repo:
-source .venv/bin/activate
-python main.py
 ```
 
-1. Click **Open PDF…** and select your French PDF
+1. Drop a PDF onto the window (or click to browse)
 2. The chapter list populates from the PDF's table of contents
 3. Select one or more chapters to translate
-4. Set an output path (defaults to `<original>_ja.pdf` next to the source file)
-5. Click **Translate Selected Chapters**
-6. A Chromium browser window opens — log in to your claude.ai account
+4. The output path defaults to `<original>_ch<N>_jp.pdf` next to the source file
+5. Click **Translate**
+6. A Chrome browser window opens — log in to your claude.ai account if prompted
 7. Translation starts automatically once login is detected
-8. When complete, a dialog shows the output path
+8. The app closes automatically when complete
 
 ---
 
@@ -80,7 +75,6 @@ translator/
 
 ## Notes
 
-- Long chapters are split into ~3000-character chunks to stay within Claude's input limits.
-- A 2-second pause is inserted between chunks to avoid rate limiting.
-- The output PDF uses a **reflow layout**: text flows naturally in Japanese and images are embedded at their relative positions. The page geometry does not match the original French layout exactly.
+- The chapter PDF is uploaded to claude.ai and translated in one pass; each image region is replaced with a labeled placeholder before upload so Claude places them correctly in the HTML output.
+- The output PDF is rendered from HTML via Playwright (MathJax handles LaTeX, Hiragino Mincho font is used for Japanese text on macOS).
 - Claude.ai's web UI may change over time. If the automator stops working, the CSS selectors in `src/claude_automator.py` may need to be updated.
