@@ -23,3 +23,6 @@ debug_ch*.html
 # IDE
 .idea/
 .vscode/
+
+# Claude Code local settings (user-specific)
+.claude/settings.local.json
