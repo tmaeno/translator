@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pdf-translator-fr-ja"
+version = "0.1.0"
+description = "Translate French PDF textbooks to Japanese using claude.ai"
+requires-python = ">=3.11"
+dependencies = [
+    "pymupdf>=1.24.0",
+    "playwright>=1.40.0",
+    "PySide6>=6.6.0",
+    "matplotlib>=3.8.0",
+]
+
+[project.scripts]
+pdf-translator = "src.gui.main_window:_run"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]

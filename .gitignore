@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Virtual environment
+.venv/
+venv/
+
+# Tests / cache
+.pytest_cache/
+
+# macOS
+.DS_Store
+
+# App output / runtime data
+translated_output/
+debug_ch*.html
+*.log
+
+# IDE
+.idea/
+.vscode/
