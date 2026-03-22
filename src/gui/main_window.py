@@ -4,6 +4,7 @@ Main PySide6 window for the PDF French→Japanese Translator.
 from __future__ import annotations
 
 import json
+import re
 import tempfile
 from datetime import datetime
 from pathlib import Path
@@ -380,7 +381,10 @@ class MainWindow(QMainWindow):
             return
 
         chapters = [item.data(Qt.UserRole) for item in selected_items]
-        chapter_nums = [self._chapter_list.row(item) + 1 for item in selected_items]
+        chapter_nums = [
+            _chapter_num(item.data(Qt.UserRole).title, self._chapter_list.row(item) + 1)
+            for item in selected_items
+        ]
 
         self._translate_btn.setEnabled(False)
         self._cancel_btn.setVisible(True)
@@ -465,7 +469,10 @@ class MainWindow(QMainWindow):
         if not self._pdf_path:
             return
         selected = self._chapter_list.selectedItems()
-        nums = ".".join(str(self._chapter_list.row(i) + 1) for i in selected) if selected else "1"
+        nums = ".".join(
+            _chapter_num(i.data(Qt.UserRole).title, self._chapter_list.row(i) + 1)
+            for i in selected
+        ) if selected else "1"
         stem = Path(self._pdf_path).stem
         out = Path(self._pdf_path).parent / f"{stem}_ch{nums}_jp.pdf"
         self._out_label.setText(str(out))
@@ -491,6 +498,12 @@ class MainWindow(QMainWindow):
                 f.write(f"[{datetime.now().strftime('%H:%M:%S')}] {msg}\n")
         except Exception:
             pass
+
+
+def _chapter_num(title: str, fallback: int) -> str:
+    """Extract a leading number from a chapter title, e.g. '3. Fonctions' → '3'."""
+    m = re.match(r'(\d+)', title.strip())
+    return m.group(1) if m else str(fallback)
 
 
 def _hline() -> QFrame:
