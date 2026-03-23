@@ -501,8 +501,8 @@ class MainWindow(QMainWindow):
 
 
 def _chapter_num(title: str, fallback: int) -> str:
-    """Extract a leading number from a chapter title, e.g. '3. Fonctions' → '3'."""
-    m = re.match(r'(\d+)', title.strip())
+    """Extract the first number from a chapter title, e.g. 'Chapitre 8. Fonctions' → '8'."""
+    m = re.search(r'(\d+)', title)
     return m.group(1) if m else str(fallback)
 
 
