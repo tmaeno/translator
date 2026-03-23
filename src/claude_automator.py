@@ -220,7 +220,9 @@ class ClaudeAutomator:
             raise RuntimeError("Prompt was not sent after 3 attempts.")
 
         self._log("Waiting for Claude's translation (this may take several minutes)…")
-        return self._wait_for_html_response()
+        html = self._wait_for_html_response()
+        self.delete_current_chat()
+        return html
 
     def _upload_file(self, pdf_path: Path) -> None:
         """Attach a file to the current conversation via the file input element."""
@@ -405,6 +407,51 @@ class ClaudeAutomator:
         except Exception:
             return False
 
+
+    def delete_current_chat(self) -> None:
+        """Delete the current chat from Claude.ai's sidebar."""
+        try:
+            url = self._page.url
+            chat_id = url.rstrip("/").split("/")[-1]
+            if not chat_id or chat_id in ("new", "claude.ai"):
+                return
+
+            self._log("  Deleting chat from history…")
+
+            chat_link = self._page.locator(f'a[href*="{chat_id}"]').first
+            if chat_link.count() == 0:
+                return
+            chat_link.hover(force=True)
+            time.sleep(0.3)
+
+            menu_btn = self._page.locator(
+                'button[aria-label*="more" i], button[aria-label*="option" i], '
+                'button[data-testid*="more"], button[data-testid*="menu"]'
+            ).last
+            if menu_btn.count() == 0 or not menu_btn.is_visible():
+                return
+            menu_btn.click()
+            time.sleep(0.3)
+
+            delete_btn = self._page.locator(
+                'button:has-text("Delete"), menuitem:has-text("Delete"), '
+                '[role="menuitem"]:has-text("Delete")'
+            ).first
+            if delete_btn.count() == 0 or not delete_btn.is_visible():
+                return
+            delete_btn.click()
+            time.sleep(0.3)
+
+            confirm_btn = self._page.locator(
+                'button:has-text("Delete"), button[data-testid*="confirm"]'
+            ).last
+            if confirm_btn.count() > 0 and confirm_btn.is_visible():
+                confirm_btn.click()
+
+            time.sleep(0.5)
+            self._log("  Chat deleted.")
+        except Exception as e:
+            self._log(f"  (Could not delete chat: {e})")
 
     def _find_element(self, selectors: list[str]):
         for sel in selectors:
