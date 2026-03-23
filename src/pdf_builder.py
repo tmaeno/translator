@@ -75,8 +75,11 @@ class HtmlPdfBuilder:
     _FONT_OVERRIDE = (
         '<style>\n'
         'body { font-family: "Hiragino Mincho ProN", "Noto Serif CJK JP", serif !important;'
-        ' font-size: 11pt !important; }\n'
+        ' font-size: 10pt !important; }\n'
         'p, li, td, th { font-size: 1em !important; }\n'
+        'figure, figure img, div:has(> figure), p:has(> img) {'
+        ' border: none !important; box-shadow: none !important;'
+        ' width: auto !important; height: auto !important; }\n'
         '</style>\n'
     )
 
