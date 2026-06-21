@@ -10,7 +10,7 @@ import time
 from pathlib import Path
 from typing import Callable
 
-from playwright.sync_api import sync_playwright, BrowserContext, Page
+from playwright.sync_api import sync_playwright, BrowserContext, Page, Error as PlaywrightError
 
 CLAUDE_URL = "https://claude.ai"
 
@@ -106,7 +106,22 @@ class ClaudeAutomator:
         )
 
         self._log("Opening claude.ai…")
-        self._page.goto(f"{CLAUDE_URL}/new")
+        self._open_new_chat()
+
+    def _open_new_chat(self) -> None:
+        """Navigate to a fresh conversation, tolerating an auth redirect.
+
+        claude.ai bounces /new -> /logout -> /login when the saved session has
+        expired; that client-side redirect makes the default goto raise
+        'interrupted by another navigation'. Swallow only that case so the
+        caller can fall through to login detection.
+        """
+        try:
+            self._page.goto(f"{CLAUDE_URL}/new")
+        except PlaywrightError as e:
+            if "interrupted by another navigation" not in str(e):
+                raise
+            self._log("  (claude.ai redirected — session may have expired)")
 
     def stop(self):
         try:
@@ -160,8 +175,20 @@ class ClaudeAutomator:
             raise InterruptedError("Translation cancelled.")
 
         self._log("Starting new conversation…")
-        self._page.goto(f"{CLAUDE_URL}/new")
-        self._page.wait_for_load_state("networkidle")
+        self._open_new_chat()
+        try:
+            self._page.wait_for_load_state("networkidle")
+        except PlaywrightError:
+            pass
+        # If the session expired mid-run, claude.ai shows the login page.
+        if not self._is_chat_ready():
+            self._log("  Session appears expired — please log in again in the browser window.")
+            self.wait_for_login()      # blocks, polling until the user logs back in
+            self._open_new_chat()      # now authenticated -> clean new conversation
+            try:
+                self._page.wait_for_load_state("networkidle")
+            except PlaywrightError:
+                pass
         time.sleep(1)
 
         # -- Upload the PDF file --
